@@ -1,0 +1,24 @@
+# 의존성 패키지 (용량이 크고 npm install로 복원 가능)
+node_modules/
+
+# 빌드 결과물 (npm run build로 재생성 가능)
+dist/
+
+# 환경 변수 (비밀 정보)
+.env
+.env.local
+.env.*.local
+
+# OS/에디터 임시 파일
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# superpowers 브레인스토밍 세션 (로컬 전용)
+.superpowers/
+
+# 원본 zip 파일
+*.zip

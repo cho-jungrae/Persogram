@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(netstat -ano)",
+      "Bash(node \"C:/Users/owowa/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.2/skills/brainstorming/scripts/server.js\" --port 61099 --screen-dir \"d:/[00].ANTI.G/Persogram/.superpowers/brainstorm/286-1776151145\")",
+      "Bash(curl -s http://localhost:61099)",
+      "Bash(curl -s http://localhost:65485)",
+      "Bash(curl -s http://localhost:65485/)",
+      "Bash(mkdir -p /tmp/brainstorm)",
+      "Bash(cp \"d:/[00].ANTI.G/Persogram/.superpowers/brainstorm/286-1776151145/chat-layout.html\" \"/tmp/brainstorm/chat-layout.html\")",
+      "Bash(npx vite:*)",
+      "Bash(BRAINSTORM_DIR=\"d:/[00].ANTI.G/Persogram/.superpowers/brainstorm/ia-session\" BRAINSTORM_PORT=61299 node \"C:/Users/owowa/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.2/skills/brainstorming/scripts/server.js\")",
+      "Bash(curl -s http://localhost:61299)",
+      "Bash(npm run:*)",
+      "Bash(npx tsc:*)",
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(curl -s http://localhost:5173)",
+      "Read(//c/Users/owowa/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.2/**)",
+      "Bash(bash scripts/start-server.sh --project-dir \"d:/[00].ANTI.G/Persogram\")",
+      "Bash(./node_modules/.bin/tsc --noEmit)",
+      "Bash(bash \".superpowers/brainstorm/662-1776216971/../../../.claude/plugins/cache/claude-plugins-official/superpowers/5.0.2/skills/brainstorming/../../scripts/start-server.sh\" --project-dir \"d:/[00].ANTI.G/Persogram\")",
+      "Bash(bash \"C:/Users/owowa/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.2/scripts/start-server.sh\" --project-dir \"d:/[00].ANTI.G/Persogram\")",
+      "Bash(bash \"C:/Users/owowa/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.2/skills/brainstorming/scripts/start-server.sh\" --project-dir \"d:/[00].ANTI.G/Persogram\")",
+      "Bash(npm install:*)",
+      "WebFetch(domain:images.unsplash.com)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://images.unsplash.com/photo-1604076913837-52ab5629fde4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://images.unsplash.com/photo-1578632767115-351597cf2477?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://images.unsplash.com/photo-1521017432531-fbd92d768814?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://images.unsplash.com/photo-1556157382-97eda2f9e946?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://images.unsplash.com/photo-1553481187-be93c21490a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://images.unsplash.com/photo-1620712943543-bcc4688e7485?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://images.unsplash.com/photo-1716798084682-decdb59ca364?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjdXRlJTIwYW5pbWUlMjBnaXJsJTIwcGFzdGVsJTIwYWVzdGhldGljfGVufDF8fHx8MTc3NTgxMDU0OXww&ixlib=rb-4.1.0&q=80&w=1080\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://images.unsplash.com/photo-1640903581708-8d491706515b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhbmltZSUyMHdhcnJpb3IlMjBkYXJrJTIwbXlzdGVyaW91c3xlbnwxfHx8fDE3NzU4MTA1NDV8MA&ixlib=rb-4.1.0&q=80&w=1080\")"
+    ]
+  }
+}
