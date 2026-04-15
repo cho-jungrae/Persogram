@@ -16,7 +16,7 @@ export interface Character {
   messages: number;
 }
 
-interface Post {
+export interface Post {
   id: number;
   image: string;
   text: string;
@@ -110,14 +110,14 @@ const formatCount = (n: number) => {
 type TabType = "Images" | "Chats" | "Perso";
 
 // ── Fullscreen image viewer (native pointer events, no motion) ──
-interface ViewerProps {
+export interface ViewerProps {
   posts: Post[];
   initialIndex: number;
   character: Character;
   onClose: () => void;
 }
 
-function FullscreenViewer({ posts, initialIndex, character, onClose }: ViewerProps) {
+export function FullscreenViewer({ posts, initialIndex, character, onClose }: ViewerProps) {
   const [index, setIndex] = useState(initialIndex);
   // prevIndex: 나가는 이미지, slideDir: 이동 방향
   const [prevIndex, setPrevIndex] = useState<number | null>(null);

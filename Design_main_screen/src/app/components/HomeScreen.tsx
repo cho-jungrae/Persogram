@@ -306,7 +306,7 @@ export function HomeScreen() {
             characters={characters}
             interestIds={interestIds}
             onStartChat={(char) => setChatCharacter(char)}
-            onGoHome={() => setActiveNav("home")}
+            onNewChat={() => setActiveNav("explore")}
             onOpenStory={(index, stories) => setStoryState({ index, stories })}
           />
         )}

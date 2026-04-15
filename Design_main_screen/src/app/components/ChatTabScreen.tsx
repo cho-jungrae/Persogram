@@ -46,7 +46,7 @@ interface ChatTabScreenProps {
   characters: Character[];
   interestIds: number[];
   onStartChat: (character: Character) => void;
-  onGoHome: () => void;
+  onNewChat: () => void;
   onOpenStory: (index: number, stories: ReturnType<typeof buildStories>) => void;
 }
 
@@ -300,7 +300,7 @@ function ConversationList({
   );
 }
 
-export function ChatTabScreen({ characters, interestIds, onStartChat, onGoHome, onOpenStory }: ChatTabScreenProps) {
+export function ChatTabScreen({ characters, interestIds, onStartChat, onNewChat, onOpenStory }: ChatTabScreenProps) {
   const charById = Object.fromEntries(characters.map((c) => [c.id, c]));
 
   // 관심 캐릭터 기반으로 스트립 구성 (interestIds 순서 유지, FAVORITE_META로 hasUpdate/isOnline 보강)
@@ -353,21 +353,19 @@ export function ChatTabScreen({ characters, interestIds, onStartChat, onGoHome, 
             채팅
           </span>
           <button
-            onClick={onGoHome}
+            onClick={onNewChat}
             style={{
-              width: "30px",
-              height: "30px",
-              borderRadius: "8px",
-              background: "rgba(255,255,255,0.08)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              borderRadius: "16px",
+              background: "#0EA5E9",
+              padding: "6px 12px",
               border: "none",
               cursor: "pointer",
-              fontSize: "15px",
+              color: "white",
+              fontSize: "11px",
+              fontWeight: 700,
             }}
           >
-            ✏️
+            + 새 대화
           </button>
         </div>
 
