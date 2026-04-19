@@ -91,6 +91,7 @@ const MOCK_MESSAGE_COUNTS: Record<number, string> = {
 interface ExploreTabScreenProps {
   characters: Character[];
   onSelectCharacter: (character: Character) => void;
+  onViewerChange?: (isOpen: boolean) => void;
 }
 
 // ── 서브 컴포넌트 ──────────────────────────────────────────────────────────────
@@ -649,12 +650,12 @@ function SearchOverlay({
 
 // ── 메인 컴포넌트 ──────────────────────────────────────────────────────────────
 
-export function ExploreTabScreen({ characters, onSelectCharacter }: ExploreTabScreenProps) {
+export function ExploreTabScreen({ characters, onSelectCharacter, onViewerChange }: ExploreTabScreenProps) {
   const [isSearching, setIsSearching] = useState(false);
   const [query, setQuery] = useState("");
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState<Category>("전체");
-  const [viewerState, setViewerState] = useState<{ posts: Post[]; index: number; character: Character } | null>(null);
+  const [viewerState, setViewerState] = useState<{ posts: Post[]; index: number; character: Character; feedImages: FeedImage[] } | null>(null);
 
   const charById = Object.fromEntries(characters.map((c) => [c.id, c]));
 
@@ -669,11 +670,16 @@ export function ExploreTabScreen({ characters, onSelectCharacter }: ExploreTabSc
   function openViewer(feedImage: FeedImage) {
     const char = charById[feedImage.characterId];
     if (!char) return;
-    // 같은 캐릭터의 피드 이미지들을 Post 형태로 변환
-    const charFeedImages = filteredFeedImages.filter((f) => f.characterId === feedImage.characterId);
-    const posts: Post[] = charFeedImages.map((f) => ({ id: f.id, image: f.image, text: f.text, likes: f.likes, comments: f.comments }));
-    const index = posts.findIndex((p) => p.id === feedImage.id);
-    setViewerState({ posts, index: index >= 0 ? index : 0, character: char });
+    // 탐색 탭에서는 전체 피드 이미지를 넘길 수 있게
+    const allPosts: Post[] = filteredFeedImages.map((f) => ({ id: f.id, image: f.image, text: f.text, likes: f.likes, comments: f.comments }));
+    const index = allPosts.findIndex((p) => p.id === feedImage.id);
+    setViewerState({ posts: allPosts, index: index >= 0 ? index : 0, character: char, feedImages: filteredFeedImages });
+    onViewerChange?.(true);
+  }
+
+  function closeViewer() {
+    setViewerState(null);
+    onViewerChange?.(false);
   }
 
   function handleCancel() {
@@ -866,14 +872,27 @@ export function ExploreTabScreen({ characters, onSelectCharacter }: ExploreTabSc
       </AnimatePresence>
 
       {/* 전체화면 이미지 뷰어 */}
-      {viewerState && (
-        <FullscreenViewer
-          posts={viewerState.posts}
-          initialIndex={viewerState.index}
-          character={viewerState.character}
-          onClose={() => setViewerState(null)}
-        />
-      )}
+      {viewerState && (() => {
+        // 현재 표시 중인 피드 이미지의 캐릭터를 동적으로 찾기 위해 wrapper 사용
+        const currentFeed = viewerState.feedImages[viewerState.index];
+        const currentChar = currentFeed ? (charById[currentFeed.characterId] ?? viewerState.character) : viewerState.character;
+        return (
+          <FullscreenViewer
+            posts={viewerState.posts}
+            initialIndex={viewerState.index}
+            character={currentChar}
+            onClose={closeViewer}
+            onViewProfile={() => {
+              closeViewer();
+              onSelectCharacter(currentChar);
+            }}
+            onStartChat={() => {
+              closeViewer();
+              onSelectCharacter(currentChar);
+            }}
+          />
+        );
+      })()}
     </div>
   );
 }

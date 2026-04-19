@@ -15,8 +15,27 @@ interface Message {
 interface ChatScreenProps {
   character: Character;
   onBack: () => void;
+  onViewProfile?: () => void;
   onSaveHighlight?: (highlight: ChatHighlight) => void;
   savedHighlightIds?: Set<number>;
+  characterStatus?: string;
+  intimacyLevel?: number; // 0~100
+}
+
+// ── 친밀도 레벨 시스템 ──
+interface IntimacyInfo {
+  emoji: string;
+  label: string;
+  color: string;
+}
+
+function getIntimacyInfo(level: number): IntimacyInfo {
+  if (level <= 20) return { emoji: "🌱", label: "새싹", color: "#86EFAC" };
+  if (level <= 40) return { emoji: "🌿", label: "풀잎", color: "#4ADE80" };
+  if (level <= 60) return { emoji: "🌳", label: "나무", color: "#22C55E" };
+  if (level <= 80) return { emoji: "🌸", label: "꽃", color: "#F472B6" };
+  if (level <= 95) return { emoji: "⭐", label: "별", color: "#FBBF24" };
+  return { emoji: "👑", label: "소울메이트", color: "#F59E0B" };
 }
 
 // ── Helpers ────────────────────────────────────────────────────
@@ -101,7 +120,7 @@ function HeartBurst({ onComplete }: { onComplete: () => void }) {
 }
 
 // ── Component ─────────────────────────────────────────────────
-export function ChatScreen({ character, onBack, onSaveHighlight, savedHighlightIds = new Set() }: ChatScreenProps) {
+export function ChatScreen({ character, onBack, onViewProfile, onSaveHighlight, savedHighlightIds = new Set(), characterStatus = "온라인", intimacyLevel = 15 }: ChatScreenProps) {
   const avatar = character.avatarImage || character.image;
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -235,12 +254,15 @@ export function ChatScreen({ character, onBack, onSaveHighlight, savedHighlightI
           flexShrink: 0,
         }}
       >
+        {/* 뒤로가기 */}
         <button
           onClick={onBack}
           style={{ color: "rgba(255,255,255,0.85)", background: "none", border: "none", padding: 4, cursor: "pointer", display: "flex" }}
         >
           <ArrowLeft size={22} />
         </button>
+
+        {/* 아바타 */}
         <div
           style={{
             width: 36, height: 36, borderRadius: "50%",
@@ -250,23 +272,46 @@ export function ChatScreen({ character, onBack, onSaveHighlight, savedHighlightI
         >
           <img src={avatar} alt={character.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </div>
+
+        {/* 이름 + 상태 + 친밀도 */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ color: "white", fontSize: 14, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-            {character.name}
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ color: "white", fontSize: 14, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {character.name}
+            </span>
+            {/* 친밀도 뱃지 */}
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 2,
+                background: "rgba(255,255,255,0.15)",
+                borderRadius: 10,
+                padding: "1px 6px",
+                fontSize: 10,
+              }}
+            >
+              <span>{getIntimacyInfo(intimacyLevel).emoji}</span>
+              <span style={{ color: getIntimacyInfo(intimacyLevel).color, fontWeight: 700, fontSize: 9 }}>
+                {getIntimacyInfo(intimacyLevel).label}
+              </span>
+            </span>
           </div>
-          <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 10, display: "flex", alignItems: "center", gap: 3 }}>
+          <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 10, display: "flex", alignItems: "center", gap: 3, marginTop: 1, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
             {isTyping ? (
               "입력 중..."
             ) : (
               <>
-                <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#4ADE80", display: "inline-block" }} />
-                온라인
+                <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#4ADE80", display: "inline-block", flexShrink: 0 }} />
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{characterStatus}</span>
               </>
             )}
           </div>
         </div>
+
+        {/* 프로필 버튼 */}
         <button
-          onClick={onBack}
+          onClick={onViewProfile}
           style={{
             color: "rgba(255,255,255,0.85)", fontSize: 11, fontWeight: 600,
             border: "1px solid rgba(255,255,255,0.35)", borderRadius: 6,
@@ -282,7 +327,7 @@ export function ChatScreen({ character, onBack, onSaveHighlight, savedHighlightI
         style={{
           flex: 1,
           overflowY: "auto",
-          padding: "0 14px",
+          padding: "0 16px",
           display: "flex",
           flexDirection: "column",
           gap: 10,
@@ -295,8 +340,8 @@ export function ChatScreen({ character, onBack, onSaveHighlight, savedHighlightI
           <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />
         </div>
 
-        {/* 더블탭 안내 (첫 메시지 이후) */}
-        {messages.length >= 1 && (
+        {/* 더블탭 안내 (메시지 3개 이하일 때만) */}
+        {messages.length >= 1 && messages.length <= 3 && (
           <div style={{ textAlign: "center", padding: "4px 0 8px" }}>
             <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 10 }}>
               AI 메시지를 더블탭하면 주요 대화로 저장돼요
@@ -408,7 +453,7 @@ export function ChatScreen({ character, onBack, onSaveHighlight, savedHighlightI
       {/* ── 입력 영역 ── */}
       <div
         style={{
-          padding: "10px 14px 28px",
+          padding: "10px 16px 28px",
           background: "#0B1526",
           borderTop: "1px solid rgba(255,255,255,0.07)",
           flexShrink: 0,
@@ -422,7 +467,7 @@ export function ChatScreen({ character, onBack, onSaveHighlight, savedHighlightI
             background: "rgba(255,255,255,0.08)",
             border: "1px solid rgba(255,255,255,0.12)",
             borderRadius: 24,
-            padding: "8px 8px 8px 16px",
+            padding: "8px 8px 8px 18px",
           }}
         >
           <input
@@ -440,9 +485,10 @@ export function ChatScreen({ character, onBack, onSaveHighlight, savedHighlightI
               fontSize: 13,
             }}
           />
-          <button
+          <motion.button
             onClick={handleSend}
             disabled={isTyping}
+            whileTap={inputText.trim() && !isTyping ? { scale: 0.85 } : {}}
             style={{
               width: 30, height: 30, borderRadius: "50%",
               background: inputText.trim() && !isTyping ? character.accentColor : "rgba(255,255,255,0.15)",
@@ -454,7 +500,7 @@ export function ChatScreen({ character, onBack, onSaveHighlight, savedHighlightI
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
               <path d="M12 19V5M5 12l7-7 7 7" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-          </button>
+          </motion.button>
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { toast } from "sonner";
-import { Search, ChevronRight, Bell, TrendingUp, Mic } from "lucide-react";
+import { Search, ChevronRight, Bell, TrendingUp } from "lucide-react";
 import { STAGGER_CONTAINER, STAGGER_ITEM } from "./animationTokens";
 import { CharacterCard } from "./CharacterCard";
 import { BottomNav } from "./BottomNav";
@@ -24,13 +24,35 @@ const tabs = [
   { id: "popular", label: "인기있는" },
   { id: "situation", label: "상황별" },
   { id: "persona", label: "페르소나" },
-  { id: "voice", label: "보이스 가능", icon: <Mic size={11} /> },
+  { id: "interested", label: "관심있는", icon: <span style={{ fontSize: 10 }}>♥</span> },
 ];
 
 // mock 관심 수 (캐릭터별 기본 관심자 수)
 const MOCK_INTEREST_COUNTS: Record<number, number> = {
   1: 48, 2: 32, 3: 127, 4: 65, 5: 89, 6: 54,
   7: 41, 8: 93, 9: 37, 10: 56, 11: 72, 12: 110,
+};
+
+// 캐릭터별 현재 상태 (페르소나가 지금 뭘 하고 있는지)
+const CHARACTER_STATUS: Record<number, string> = {
+  1: "도쿄 카페에서 공부 중 ☕",
+  2: "사무실에서 일하는 중 💼",
+  3: "벚꽃 구경 중 🌸",
+  4: "검술 수련 중 ⚔️",
+  5: "비즈니스 미팅 중 🏢",
+  6: "마법 연구실에서 실험 중 🔮",
+  7: "우주 정거장에서 휴식 중 🚀",
+  8: "카페에서 신메뉴 개발 중 ☕",
+  9: "사건 현장 조사 중 🔍",
+  10: "퇴근하고 집에서 쉬는 중 🏠",
+  11: "던전 탐험 준비 중 ⚔️",
+  12: "데이터 분석 중 🤖",
+};
+
+// 캐릭터별 친밀도 (0~100, mock 데이터)
+const CHARACTER_INTIMACY: Record<number, number> = {
+  1: 45, 2: 20, 3: 72, 4: 35, 5: 15, 6: 28,
+  7: 55, 8: 63, 9: 10, 10: 40, 11: 30, 12: 50,
 };
 
 const characters = [
@@ -232,6 +254,7 @@ export function HomeScreen() {
   const [storyState, setStoryState] = useState<{ index: number; stories: Story[] } | null>(null);
   const [interestIds, setInterestIds] = useState<number[]>([1, 2, 3, 4]); // 초기 관심 캐릭터
   const [chatHighlights, setChatHighlights] = useState<ChatHighlight[]>([]);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
 
   function toggleInterest(id: number) {
     setInterestIds((prev) =>
@@ -277,8 +300,14 @@ export function HomeScreen() {
           <ChatScreen
             character={chatCharacter}
             onBack={() => setChatCharacter(null)}
+            onViewProfile={() => {
+              setSelectedCharacter(chatCharacter);
+              setChatCharacter(null);
+            }}
             onSaveHighlight={addHighlight}
             savedHighlightIds={new Set(chatHighlights.filter((h) => h.characterId === chatCharacter.id).map((h) => h.id))}
+            characterStatus={CHARACTER_STATUS[chatCharacter.id] ?? "온라인"}
+            intimacyLevel={CHARACTER_INTIMACY[chatCharacter.id] ?? 15}
           />
         )}
         <AnimatePresence>
@@ -296,6 +325,7 @@ export function HomeScreen() {
               isInterested={interestIds.includes(selectedCharacter.id)}
               onToggleInterest={() => toggleInterest(selectedCharacter.id)}
               chatHighlights={chatHighlights.filter((h) => h.characterId === selectedCharacter.id)}
+              interestCount={(MOCK_INTEREST_COUNTS[selectedCharacter.id] ?? 0) + (interestIds.includes(selectedCharacter.id) ? 1 : 0)}
             />
           )}
         </AnimatePresence>
@@ -316,6 +346,7 @@ export function HomeScreen() {
           <ExploreTabScreen
             characters={characters}
             onSelectCharacter={(char) => setSelectedCharacter(char)}
+            onViewerChange={setIsViewerOpen}
           />
         )}
 
@@ -593,17 +624,114 @@ export function HomeScreen() {
             )}
 
             {/* ── 보이스 가능 탭: 준비중 ── */}
-            {activeTab === "voice" && (
-              <div style={{ textAlign: "center", padding: "60px 16px" }}>
-                <div style={{ fontSize: 40, marginBottom: 12 }}>🎙️</div>
-                <p style={{ fontSize: "16px", fontWeight: 700, color: "#0C2340", marginBottom: "6px" }}>
-                  보이스 기능 준비중
-                </p>
-                <p style={{ fontSize: "13px", color: "#94A3B8", lineHeight: 1.5 }}>
-                  캐릭터의 목소리로 대화할 수 있는 기능이<br />곧 제공될 예정이에요
-                </p>
-              </div>
-            )}
+            {/* ── 관심있는 탭: 관심 캐릭터 + 현재 상태 ── */}
+            {activeTab === "interested" && (() => {
+              const interestedChars = characters.filter((c) => interestIds.includes(c.id));
+              if (interestedChars.length === 0) {
+                return (
+                  <div style={{ textAlign: "center", padding: "60px 16px" }}>
+                    <div style={{ fontSize: 40, marginBottom: 12 }}>💕</div>
+                    <p style={{ fontSize: "16px", fontWeight: 700, color: "#0C2340", marginBottom: "6px" }}>
+                      관심있는 페르소나가 없어요
+                    </p>
+                    <p style={{ fontSize: "13px", color: "#94A3B8", lineHeight: 1.5 }}>
+                      캐릭터 카드의 ♥ 버튼을 눌러<br />관심을 추가해보세요
+                    </p>
+                  </div>
+                );
+              }
+              return (
+                <>
+                  <div className="flex items-center justify-between px-1">
+                    <p style={{ fontSize: "16px", fontWeight: 800, color: "#0C2340" }}>♥ 관심있는 페르소나</p>
+                    <span style={{ color: "#94A3B8", fontSize: "13px" }}>{interestedChars.length}명</span>
+                  </div>
+                  <motion.div
+                    key="interested"
+                    className="flex flex-col gap-3"
+                    variants={STAGGER_CONTAINER}
+                    initial="initial"
+                    animate="animate"
+                  >
+                    {interestedChars.map((char) => {
+                      const avatar = char.avatarImage || char.image;
+                      const status = CHARACTER_STATUS[char.id] ?? "온라인";
+                      return (
+                        <motion.div key={char.id} variants={STAGGER_ITEM}>
+                          <div
+                            onClick={() => setSelectedCharacter(char)}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "12px",
+                              background: "white",
+                              borderRadius: "16px",
+                              padding: "12px",
+                              cursor: "pointer",
+                              boxShadow: "0 2px 12px rgba(14,165,233,0.08)",
+                              border: "1px solid rgba(14,165,233,0.08)",
+                            }}
+                          >
+                            {/* 아바타 + 온라인 dot */}
+                            <div style={{ position: "relative", flexShrink: 0 }}>
+                              <div
+                                style={{
+                                  width: "52px",
+                                  height: "52px",
+                                  borderRadius: "50%",
+                                  overflow: "hidden",
+                                  border: `2px solid ${char.accentColor}`,
+                                }}
+                              >
+                                <img src={avatar} alt={char.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                              </div>
+                              <div style={{
+                                position: "absolute", bottom: "1px", right: "1px",
+                                width: "12px", height: "12px", borderRadius: "50%",
+                                background: "#4ADE80", border: "2px solid white",
+                              }} />
+                            </div>
+                            {/* 이름 + 상태 */}
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: "14px", fontWeight: 700, color: "#0C2340", marginBottom: "2px" }}>
+                                {char.name}
+                              </div>
+                              <div style={{ fontSize: "11px", color: "#94A3B8", marginBottom: "3px" }}>
+                                {char.role}
+                              </div>
+                              <div style={{ fontSize: "11px", color: char.accentColor, display: "flex", alignItems: "center", gap: "4px" }}>
+                                <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#4ADE80", display: "inline-block" }} />
+                                {status}
+                              </div>
+                            </div>
+                            {/* 대화하기 버튼 */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setChatCharacter(char);
+                              }}
+                              style={{
+                                padding: "8px 14px",
+                                borderRadius: "12px",
+                                background: char.accentColor,
+                                color: "white",
+                                fontSize: "11px",
+                                fontWeight: 700,
+                                border: "none",
+                                cursor: "pointer",
+                                flexShrink: 0,
+                              }}
+                            >
+                              💬 대화
+                            </button>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </motion.div>
+                </>
+              );
+            })()}
 
           </div>
 
@@ -704,7 +832,7 @@ export function HomeScreen() {
       </main>
 
       {/* Bottom Nav — 프로필/채팅/스토리 화면에서는 숨김 */}
-      {!selectedCharacter && !chatCharacter && !storyState && (
+      {!selectedCharacter && !chatCharacter && !storyState && !isViewerOpen && (
         <BottomNav activeNav={activeNav} setActiveNav={setActiveNav} />
       )}
 

@@ -115,14 +115,18 @@ export interface ViewerProps {
   initialIndex: number;
   character: Character;
   onClose: () => void;
+  onViewProfile?: () => void;
+  onStartChat?: () => void;
+  onToggleInterest?: () => void;
+  isInterested?: boolean;
 }
 
-export function FullscreenViewer({ posts, initialIndex, character, onClose }: ViewerProps) {
+export function FullscreenViewer({ posts, initialIndex, character, onClose, onViewProfile, onStartChat, onToggleInterest, isInterested = false }: ViewerProps) {
   const [index, setIndex] = useState(initialIndex);
-  // prevIndex: 나가는 이미지, slideDir: 이동 방향
   const [prevIndex, setPrevIndex] = useState<number | null>(null);
   const [slideDir, setSlideDir] = useState<"up" | "down">("up");
   const [textExpanded, setTextExpanded] = useState(false);
+  const [likedIds, setLikedIds] = useState<Set<number>>(new Set());
   const isAnimatingRef = useRef(false);
   const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
   const dragDirRef = useRef<"vertical" | "horizontal" | null>(null);
@@ -274,24 +278,30 @@ export function FullscreenViewer({ posts, initialIndex, character, onClose }: Vi
         style={{
           position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 10,
           background: "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.55) 65%, transparent 100%)",
-          padding: "56px 20px 44px",
+          padding: "56px 20px 34px",
           pointerEvents: "none",
         }}
       >
-        <div className="flex items-center gap-2.5 mb-3" style={{ pointerEvents: "auto" }}>
+        {/* 아바타 + 이름 — 탭 시 프로필 이동 */}
+        <button
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => { onClose(); onViewProfile?.(); }}
+          className="flex items-center gap-2.5 mb-3"
+          style={{ pointerEvents: "auto", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+        >
           <div style={{ width: "28px", height: "28px", borderRadius: "50%", overflow: "hidden", border: `2px solid ${character.accentColor}`, flexShrink: 0 }}>
             <img src={avatar} className="w-full h-full object-cover" alt="avatar" />
           </div>
           <span style={{ color: "white", fontSize: "13px", fontWeight: 700 }}>{character.name}</span>
-        </div>
+          <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px" }}>›</span>
+        </button>
 
-        {/* 텍스트 + 좋아요/댓글 — 텍스트 탭 시 전체 슬라이드업 */}
+        {/* 텍스트 — 탭 시 확장/접기 */}
         <div
           onPointerDown={(e) => e.stopPropagation()}
           onClick={() => setTextExpanded((v) => !v)}
           style={{ cursor: "pointer", pointerEvents: "auto", marginBottom: "12px" }}
         >
-          {/* 텍스트: 기본 2줄, 탭 시 전체 표시 */}
           <div
             style={{
               overflow: "hidden",
@@ -299,46 +309,86 @@ export function FullscreenViewer({ posts, initialIndex, character, onClose }: Vi
               transition: "max-height 0.38s cubic-bezier(0.4,0,0.2,1)",
             }}
           >
-            <p
-              style={{
-                color: "rgba(255,255,255,0.92)",
-                fontSize: "14px",
-                lineHeight: "26px",
-                whiteSpace: "pre-wrap",
-              }}
-            >
+            <p style={{ color: "rgba(255,255,255,0.92)", fontSize: "14px", lineHeight: "26px", whiteSpace: "pre-wrap" }}>
               {post.text}
             </p>
           </div>
-
-          {/* 더보기 / 접기 인디케이터 */}
-          <div
-            className="flex items-center gap-1 mt-1"
-            style={{ color: "rgba(255,255,255,0.45)", fontSize: "12px" }}
-          >
-            {textExpanded ? (
-              <>
-                <ChevronDown size={13} />
-                <span>접기</span>
-              </>
-            ) : (
-              <>
-                <ChevronUp size={13} />
-                <span>더보기</span>
-              </>
-            )}
+          <div className="flex items-center gap-1 mt-1" style={{ color: "rgba(255,255,255,0.45)", fontSize: "12px" }}>
+            {textExpanded ? <><ChevronDown size={13} /><span>접기</span></> : <><ChevronUp size={13} /><span>더보기</span></>}
           </div>
         </div>
 
         {/* 좋아요 + 댓글 */}
-        <div className="flex items-center gap-5" style={{ pointerEvents: "auto" }}>
-          <button className="flex items-center gap-1.5" style={{ color: "rgba(255,255,255,0.85)", fontSize: "14px", fontWeight: 600 }}>
-            <Heart size={16} /> {formatCount(post.likes)}
+        <div className="flex items-center gap-5 mb-3" style={{ pointerEvents: "auto" }}>
+          <button
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={() => {
+              setLikedIds((prev) => {
+                const next = new Set(prev);
+                if (next.has(post.id)) next.delete(post.id);
+                else next.add(post.id);
+                return next;
+              });
+            }}
+            className="flex items-center gap-1.5"
+            style={{ color: likedIds.has(post.id) ? "#F43F5E" : "rgba(255,255,255,0.85)", fontSize: "14px", fontWeight: 600, background: "none", border: "none", cursor: "pointer", padding: 0 }}
+          >
+            <Heart size={16} fill={likedIds.has(post.id) ? "#F43F5E" : "transparent"} />
+            {formatCount(post.likes + (likedIds.has(post.id) ? 1 : 0))}
           </button>
-          <button className="flex items-center gap-1.5" style={{ color: "rgba(255,255,255,0.85)", fontSize: "14px", fontWeight: 600 }}>
+          <button
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={() => toast("댓글 기능은 곧 제공될 예정이에요")}
+            className="flex items-center gap-1.5"
+            style={{ color: "rgba(255,255,255,0.85)", fontSize: "14px", fontWeight: 600, background: "none", border: "none", cursor: "pointer", padding: 0 }}
+          >
             <MessageCircle size={16} /> {post.comments}
           </button>
         </div>
+
+        {/* 관심 + 대화하기 버튼 */}
+        {(onToggleInterest || onStartChat) && (
+          <div className="flex items-center gap-2" style={{ pointerEvents: "auto" }}>
+            {onToggleInterest && (
+              <button
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={onToggleInterest}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  borderRadius: "12px",
+                  border: isInterested ? `1.5px solid ${character.accentColor}` : "1.5px solid rgba(255,255,255,0.3)",
+                  background: isInterested ? `${character.accentColor}25` : "rgba(255,255,255,0.08)",
+                  color: isInterested ? character.accentColor : "rgba(255,255,255,0.85)",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                {isInterested ? "관심중 ✓" : "♡ 관심 추가"}
+              </button>
+            )}
+            {onStartChat && (
+              <button
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={() => { onClose(); onStartChat(); }}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  borderRadius: "12px",
+                  border: "none",
+                  background: character.accentColor,
+                  color: "white",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                💬 대화하기
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -354,16 +404,15 @@ interface ProfileScreenProps {
   isInterested?: boolean;
   onToggleInterest?: () => void;
   chatHighlights?: ChatHighlight[];
+  interestCount?: number;
 }
 
-export function ProfileScreen({ character, onBack, onChatClick, hasStory, onViewStory, isInterested = false, onToggleInterest, chatHighlights = [] }: ProfileScreenProps) {
+export function ProfileScreen({ character, onBack, onChatClick, hasStory, onViewStory, isInterested = false, onToggleInterest, chatHighlights = [], interestCount = 0 }: ProfileScreenProps) {
   const [isFollowing, setIsFollowing] = useState(isInterested);
   const [activeTab, setActiveTab] = useState<TabType>("Images");
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   const avatar = character.avatarImage || character.image;
-  const followers = formatCount(character.messages * 3);
-  const following = formatCount(Math.floor(character.messages * 0.4));
 
   return (
     <motion.div
@@ -484,9 +533,9 @@ export function ProfileScreen({ character, onBack, onChatClick, hasStory, onView
 
           <div className="flex gap-6 mb-5">
             {[
-              { label: "posts", value: posts.length },
-              { label: "관심", value: followers },
-              { label: "관심중", value: following },
+              { label: "피드", value: posts.length },
+              { label: "관심", value: formatCount(interestCount) },
+              { label: "대화", value: formatCount(character.messages) },
             ].map((stat) => (
               <div key={stat.label} className="flex flex-col items-center">
                 <span style={{ fontSize: "18px", fontWeight: 800, color: "#0C2340" }}>{stat.value}</span>
